@@ -1,4 +1,5 @@
-# coding=utf-8
+#!/usr/bin/env python
+#coding=utf-8
 
 import os
 import sys
@@ -11,30 +12,179 @@ import hashlib
 import json
 import rsa
 import binascii
+import db
+from WeiboMain import *
+
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
 
 def crawl_by_uid(uid, username, pwd):
-    print '>>>>>>>>>>>', username, pwd
-    if login(username, pwd):
+    weiboLogin = WeiboLogin(username, pwd)
+    if weiboLogin.Login() == True:
         print 'Login WEIBO succeeded'
     else:
         print 'Login WEIBO failed'
         return -1
 
-    # selfUid = get_login_user_uid(username, pwd)
-    # if uid == selfUid:
-    #     get_self_weibo_relation(selfUid)
-    # else:
-    #     get_weibo_relation(uid)
+    selfUid = get_login_user_uid()
+    if uid == selfUid:
+        get_self_weibo_relation(selfUid)
+    else:
+        get_weibo_relation(uid)
 
 
+def get_login_user_uid():
+    url = 'http://weibo.com'
+    u = urllib2.urlopen(url)
+    redirectUrl = u.geturl()
+    match = re.compile(u'/\d+/')
+    searchResult = re.search(match, redirectUrl)
+    return searchResult.group(0)[1:-1]
 
-######################################################################################################
-# The following methods are for weibo login
-######################################################################################################
+
+def get_self_weibo_relation(selfUid):
+    req = urllib2.Request(url='http://weibo.com/'+selfUid+'/myfollow',)
+    result = urllib2.urlopen(req)
+    text = result.read().decode('utf-8')
+    # text = result.read()
+
+    # 为了拿到自己的 昵称 总关注数目 总粉丝数
+    match = re.compile(u'class="gn_name" target="_top" title="[\s\S]*?"')
+    searchResult = re.search(match, text)
+    selfNick = searchResult.group(0)[37:-1].encode('utf-8')
+
+    match = re.compile(u'全部关注\(\d+\)')
+    searchResult = re.search(match, text)
+    follows = searchResult.group(0)[5:-1]
+
+    match = re.compile(u'粉丝\(\d+\)')
+    searchResult = re.search(match, text)
+    fans = searchResult.group(0)[3:-1]
+
+    # 把自己加到数据库中
+    db.add_user(selfUid, selfNick, follows, fans)
+
+    match = re.compile(u'uid=\d+')
+    rawlv2 = re.findall(match, text)
+    uidList = {}.fromkeys(rawlv2).keys()
+    uidList.remove('uid='+selfUid)
+
+    currentPageNum = 1
+    while len(uidList) < int(follows):
+        print currentPageNum, len(uidList)
+        match = re.compile(u'下一页')
+        rawlv2 = re.findall(match, text)
+        result = {}.fromkeys(rawlv2).keys()
+        if len(result) > 0:
+            currentPageNum += 1
+            req = urllib2.Request(url='http://weibo.com/'+selfUid+'/myfollow?t=1&page='+str(currentPageNum),)
+            result = urllib2.urlopen(req)
+            text = result.read().decode('utf-8')
+
+            match = re.compile(u'uid=\d+')
+            rawlv2 = re.findall(match, text)
+            uidList += {}.fromkeys(rawlv2).keys()
+            uidList.remove('uid='+selfUid)
+        else: break
+
+    print 'len(uidList)=',len(uidList)
+    uidList = get_real_uid_list(uidList)
+    if len(uidList) > 0:
+        for uid in uidList:
+            db.add_relation(selfUid, uid)
+            get_userinfo(uid)
+    # 更新自己的 db_follows
+    db_follows = db.count_db_follows(selfUid)
+    db.update_user_db_follows(selfUid, db_follows)
+
+
+def get_weibo_relation(uid):
+    if not db.is_user_exist(uid):
+        get_userinfo(uid)
+    user = db.query_user(uid)
+    if user:
+        try:
+            totalFollowsNum = user.follows
+            req = urllib2.Request(url='http://weibo.com/'+uid+'/follow')
+            result = urllib2.urlopen(req)
+            text = result.read().decode('utf-8')
+            match = re.compile(u'uid=\d+')
+            rawlv2 = re.findall(match, text)
+            uidList = {}.fromkeys(rawlv2).keys()
+
+            currentPageNum = 1
+            print currentPageNum, 'uidList=', len(uidList)
+            while len(uidList) < totalFollowsNum:
+                match = re.compile(u'下一页')
+                rawlv2 = re.findall(match, text)
+                result = {}.fromkeys(rawlv2).keys()
+                if len(result) > 0:
+                    req = urllib2.Request(url='http://weibo.com/'+uid+'/follow?page='+str(currentPageNum))
+                    result = urllib2.urlopen(req)
+                    text = result.read().decode('utf-8')
+
+                    match = re.compile(u'uid=\d+')
+                    rawlv2 = re.findall(match, text)
+                    uidList += {}.fromkeys(rawlv2).keys()
+                    uidList.remove('uid='+uid)
+                currentPageNum += 1
+                print currentPageNum, 'uidList=', len(uidList)
+                if currentPageNum > 11:
+                    break
+            print 'len(uidList)=',len(uidList)
+            uidList = get_real_uid_list(uidList)
+            if len(uidList) > 0:
+                for u in uidList:
+                    db.add_relation(uid, u)
+                    get_userinfo(u)
+            # 更新自己的 db_follows
+            db_follows = db.count_db_follows(uid)
+            db.update_user_db_follows(uid, db_follows)
+            return 1
+        except Exception, e:
+            print '>>>[Error: get_weibo_relation]', uid, e
+    return -2
+
+
+def get_userinfo(uid):
+    if not db.is_user_exist(uid):
+        req = urllib2.Request(url='http://weibo.com/'+uid+'/follow',)
+        result = urllib2.urlopen(req)
+        try:
+            text = result.read().decode('utf-8')
+            match = re.compile(u'<title>[\s\S]*?的微博')
+            searchResult = re.search(match, text)
+            nick = searchResult.group(0)[7:-3].encode('utf-8')
+
+            # 为了拿到总关注数目 和 总粉丝数
+            # 匹配 <strong node-type=\"follow\">455<\/strong>\r\n\t\t\t<span>关注 <\/span>\r\n\t\t<\/a>\r\n\t<\/li>\r\n\t<li class=\"follower S_line1\">\r\n\t\t<a class=\"S_func1\" name=\"place\" href=\"\/p\/1005051867684872\/follow?relate=fans&from=100505&wvr=5&mod=headfans\">\r\n\t\t\t<strong node-type=\"fans\">760<\/strong>\r\n\t\t\t<span>粉丝
+            match = re.compile(u'<strong[\s\S]*?>粉丝')
+            searchResult = re.search(match, text)
+            result = searchResult.group(0).encode('utf-8').split('>')
+            follows = result[1].split('<')[0]
+            fans = result[9].split('<')[0]
+
+            if re.match(r'\d+', fans):
+                db.add_user(uid, nick, follows, fans)
+                return True
+            else:
+                # 有些页面匹配也会出错，先不往数据库中插数据
+                print '>>>[Error: get_userinfo]', uid, nick, follows, fans
+                # print {}.fromkeys(rawlv2).keys()[0].encode('utf-8')
+        except Exception, e:
+            # 企业版的比较特殊
+            print '>>>[Error: get_userinfo]', uid, e
+    return False
+
+
+def get_real_uid_list(uidList):
+    for i in range(0, len(uidList)-1):
+        uidList[i] = uidList[i][4:]
+    return uidList
+
+
 
 def get_prelogin_status(username):
     """
@@ -67,7 +217,6 @@ def login(username, pwd):
     cookie_file = 'weibo_login_cookies.dat'
     #If cookie file exists then try to load cookies
     if os.path.exists(cookie_file):
-        print ' ******* '
         try:
             cookie_jar  = cookielib.LWPCookieJar(cookie_file)
             cookie_jar.load(ignore_discard=True, ignore_expires=True)
@@ -164,8 +313,7 @@ def do_login(username,pwd,cookie_file):
             return 1
         else:
             return 0
-    except Exception, e:
-    	print ' &&&&&&&&& ', e
+    except:
         return 0
 
 
