@@ -1,0 +1,275 @@
+* {
+	margin: 0 0;
+	padding: 0 0;
+}
+*:focus {
+	outline: none;
+}
+body {
+	font-family: verdana,sans-serif;
+	font-size: 12px;
+	line-height: 1.8em;
+	text-align: center;
+	min-width: 960px;
+}
+ol, ul {
+list-style: none;
+}
+div {
+	display: block;
+}
+a {
+	text-decoration: none;
+}
+.hide {
+	display: none;
+}
+
+#header {
+	float: left;
+	background: #fff;
+	width: 100%;
+	min-width: 960px;
+	height: 120px;
+	clear: both;
+	display: inline;
+}
+.wrap {
+	width: 960px;
+	margin: 0 auto;
+	text-align: left;
+}
+#branding {
+	float: left;
+	width: 380px;
+	height: 120px;
+}
+	#branding .logo {
+		float: left;
+		width: 100px;
+		height: 100px;
+		margin: 5px 0;
+		background: url(/static/img/logo.png) no-repeat;
+		background-size: 100% 100%;
+	}
+	#branding .tagline {
+		float: left;
+		width: 240px;
+		height: 40px;
+		margin: 40px 0 40px 20px;
+		color: #76a0c0;
+		font-size: 160%;
+		font-weight: bold;
+		line-height: 40px;
+	}
+#header .nav {
+	float: right;
+	width: 500px;
+	height: 40px;
+	margin: 40px 30px 40px 0;
+	border-radius: 10px;
+	background-color: #eee;
+}
+#header .nav li {
+	float: left;
+	height: 40px;
+}
+#header .nav li:first-child {
+	border-top-left-radius: 10px;
+	border-bottom-left-radius: 10px;
+}
+#header .nav li:last-child { 
+	border-top-right-radius: 10px;
+	border-bottom-right-radius: 10px;
+}
+#header .nav li:hover {
+	background-color: #dadada;
+}
+#header .nav a {
+	float: left;
+	width: 92px;
+	height: 40px;
+	color: #76a0c0;
+	font-size: 130%;
+	text-align: center;
+	line-height: 40px;
+}
+#header .nav a:hover {
+	cursor: pointer;
+}
+
+#search-input {
+	width: 215px;
+	height: 30px;
+	margin: 5px 4px;
+	padding: 5px 5px;
+	border-radius: 10px;
+	border: none;
+	font-size: 120%;
+}
+
+.bubble-box {
+	position: relative;
+	width: 300px;
+	height: 240px;
+	top: 40px;
+	left: 90px;
+	background: url(/static/img/bubble-box.png) no-repeat;
+	background-size: 100% 100%;
+	z-index: 1000;
+	display: none;
+}
+.bubble-box input {
+	width: 260px;
+	height: 24px;
+	margin: 5px 15px;
+	padding: 5px 5px;
+	border-radius: 5px;
+	border: none;
+	font-size: 120%;
+}
+.bubble-box input:focus {
+	border: 1px solid #ccc;
+}
+#login-btn {
+	float: right;
+	margin: 10px 15px 0 0;
+	width: 100px;
+	height: 33px;
+	background-color: #d6d6d6;
+}
+#login-btn:hover {
+	background-color: #ccc;
+}
+#bubble-box-error {
+	float: left;
+	margin: 15px 0 0 15px;
+	width: 160px;
+	height: 40px;
+	word-wrap: break-word;
+	word-break: break-all;
+	color: red;
+}
+
+/*--------------------------------------------*/
+#body {
+	float: left;
+	background: #fff;
+	width: 100%;
+	min-width: 960px;
+	clear: both;
+	display: inline;
+	border-bottom: 15px solid #fff;
+}
+
+#graph {
+	float: left;
+	width: 930px;
+	height: 550px;
+	border-radius: 15px;
+	border: solid 1px #76a0c0;
+	overflow: hidden;
+}
+.link { 
+    stroke: green; 
+    stroke-linejoin:bevel;
+}
+.nodetext {
+    font: 12px sans-serif;
+    -webkit-user-select:none;
+    -moze-user-select:none;
+    stroke-linejoin:bevel;
+    
+}
+.circle {
+	width: 30px;
+    height: 30px;
+    border: 2px solid #ddd;
+    border-radius: 25px;
+    cursor: pointer;
+}
+
+#loading-div {
+	float: left;
+	width: 930px;
+	height: 550px;
+	background-color: #9b9b9b;
+	opacity: 0.5;
+	font-size: 300%;
+    color: #fff;
+    text-align: center;
+    margin: 0 auto;
+	display: none;
+}
+#loading-div img {
+	position: relative;
+	top: 240px;
+}
+
+/*--------------------------------*/
+#profile {
+	display: none;
+	position: absolute;
+	width: 300px;
+	height: 100px;
+	background-color: #eee;
+	text-align: left;
+}
+#profile img {
+	float: left;
+	width: 100px;
+	height: 100px;
+}
+#profile ul {
+	float: left;
+	width: 200px;
+	height: 100px;
+	background-color: #ccc;
+}
+#profile ul li {
+	float: left;
+	width: 100%;
+	height: 30px;
+	margin-bottom: 2px;
+	background: #bbb;
+}
+/*--------------------------------*/
+.toolbar {
+	float: left;
+	width: 20px;
+	padding-top: 20px;
+}
+.toolbar span {
+	margin-bottom: 10px;
+}
+#search-result-btn {
+	float: left;
+	width: 20px;
+	height: 60px;
+	background-color: #ddd;
+}
+#show-follows-btn {
+	float: left;
+	width: 20px;
+	height: 60px;
+	background-color: #ddd;	
+}
+
+#search-result-box {
+	display: none;
+	width: 224px;
+	position: relative;
+	top: -60px;
+	left: -230px;
+	z-index: 100;
+}
+#search-result-box li {
+	width: 100%;
+	height: 30px;
+	margin-bottom: 2px;
+	color: #000;
+	background-color: #eee;
+}
+#search-result-box li:hover {
+	background-color: #ddd;
+}
