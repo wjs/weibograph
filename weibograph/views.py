@@ -25,6 +25,30 @@ def search():
 	return Response(json.dumps(json_list), mimetype='application/json')
 
 
+@app.route('/graph', methods=['GET'])
+def get_graph():
+	self_uid = request.args.get('uid')
+	self = db.query_user(self_uid)
+	nodes = '"nodes":[{"uid":' + self[0] + ', "nick":"' + self[1] + '", "follows":' + str(self[2]) + ', "fans":' + str(self[3]) + '},'
+	links = '"links":[]'
+	# relations = Relation.query.with_entities(Relation.target).filter_by(source=self_uid).all()
+	# follows_ids = [r[0] for r in relations]
+	# follows = User.query.filter(User.uid.in_(follows_ids)).all()
+
+	# follows = Relation.query(target)
+	# if follows:
+	# 	for row in follows:
+	# 		nodes += '{"uid":' + row[0] + ', "nick":"' + row[1] + '", "follows":' + str(row[2]) + ', "fans":' + str(row[3]) + '},'
+	# 		links += '{"source":' + self_uid + ',"target":' + row[0] + '},'
+	nodes = nodes[:-1] + ']'
+	# links = links[:-1] + ']'
+	# else:
+	# 	nodes = nodes[:-1] + ']'
+	# 	links += ']'
+	
+	return '{' + nodes + ', ' + links + '}'
+
+
 @app.route('/crawl', methods=['POST'])
 def crawl():
 	args = request.data.split('&')

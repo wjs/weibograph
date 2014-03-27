@@ -8,7 +8,7 @@ CREATE TABLE user (
 	fans		integer NOT NULL,
 	db_follows	integer NOT NULL DEFAULT 0,
 	db_fans		integer NOT NULL DEFAULT 0,
-	create_time	timestamp NOT NULL,
+	create_time	timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	modify_time	timestamp NOT NULL
 );
 
@@ -18,3 +18,4 @@ CREATE TABLE relation (
 	PRIMARY KEY(source, target)
 );
 
+insert into user(uid, nick, follows, fans, modify_time) values ('111', 'jinshi', 12, 11, CURRENT_TIMESTAMP);

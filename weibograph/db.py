@@ -10,9 +10,8 @@ cursor = conn.cursor()
 
 def search_user(keyword):
 	try:
-		sql = 'select uid, nick from user where uid=? or nick like "%'+keyword+'%" limit 50'
-		param = (keyword)
-		return cursor.execute(sql, param).fetchall()
+		sql = 'select uid, nick from user where uid="'+keyword+'" or nick like "%'+keyword+'%" limit 50'
+		return cursor.execute(sql).fetchall()
 	except Exception, e:
 		print '>>>[Error: search_user]', keyword, e
 		return []
@@ -20,9 +19,18 @@ def search_user(keyword):
 
 def add_user(uid, nick, follows, fans):
 	try:
-		sql = 'insert into user(uid, nick, follows, fans, create_time, modify_time) values(?, ?, ?, ?, ?, ?)'
-		param = (uid, nick, follows, fans, datetime.datetime.now(), datetime.datetime.now())
+		sql = 'insert into user(uid, nick, follows, fans, modify_time) values(?, ?, ?, ?, CURRENT_TIMESTAMP)'
+		param = (uid, nick, follows, fans)
 		cursor.execute(sql, param)
 		conn.commit()
 	except Exception, e:
 		print '>>>[Error: add_user]', uid, e
+
+
+def query_user(uid):
+	try:
+		sql = 'select * from user where uid="'+uid+'"'
+		return cursor.execute(sql).fetchone()
+	except Exception, e:
+		print '>>>[Error: query_user]', uid, e
+		return None
