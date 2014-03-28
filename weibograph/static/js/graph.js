@@ -135,14 +135,13 @@ WeiboGraph.prototype.update = function() {
 			.attr('width', g_node_width+'px')
 			.attr('height', g_node_width+'px')
 			.on('mouseover', function(d) {
-				x = event.x+10;
-				y = event.y+15;
+				x = event.x;
+				y = event.y;
 				showToolTip(d, x, y, true);
 			})
 			.on('mousemove', function(d) {
-				x = event.x+10;
-				y = event.y+15;
-				if (y+150 > window.innerHeight) { y -= 200; }
+				x = event.x;
+				y = event.y;
 				tooltipDiv.css({top:y,left:x});
 			})
 			.on('mouseout', function(d) {
@@ -207,8 +206,6 @@ function changeGraphAjax(uid) {
 }
 
 function showToolTip(node, x, y, isShow) {
-	if (y+150 > window.innerHeight) { y -= 200; }
-
 	if (typeof(tooltipDiv) == "undefined") {
 		tooltipDiv = $('<div id="tooltipDiv"></div>');
 		$('body').append(tooltipDiv);
