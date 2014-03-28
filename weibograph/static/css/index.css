@@ -206,6 +206,11 @@ a {
 	min-width: 50px;
 	overflow: auto;
 }
+#tooltipDiv img {
+	width: 60px;
+	height: 60px;
+	border-radius: 30px;
+}
 
 #loading-div {
 	float: left;

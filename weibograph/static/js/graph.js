@@ -1,3 +1,7 @@
+var g_node_width = '50'
+var g_node_radius = '25'
+var g_link_width = 200
+
 function WeiboGraph(ele) {
 	// var ele = ele = document.getElementById(elementID);
 	typeof(ele)=='string' && (ele=document.getElementById(ele));
@@ -5,7 +9,7 @@ function WeiboGraph(ele) {
 		h = ele.clientHeight,
 		self = this;
 	this.force = d3.layout.force().gravity(.05)
-								.distance(function() { return (Math.random() + 0.6) * 200; })
+								.distance(function() { return (Math.random() + 0.6) * g_link_width; })
 								.charge(-800).size([w, h]);
 	this.nodes = this.force.nodes();
 	this.links = this.force.links();
@@ -20,17 +24,17 @@ function WeiboGraph(ele) {
 		.attr('id', 'rect')
 		.attr('x', '0')
 		.attr('y', '0')
-		.attr('width', '50')
-		.attr('height', '50')
-		.attr('rx', '25');
+		.attr('width', g_node_width)
+		.attr('height', g_node_width)
+		.attr('rx', g_node_radius);
 	var chipPath = defs.append('svg:clipPath')
-						.attr('id', 'circle-img');
+						.attr('id', 'circle_img');
 	chipPath.append('svg:use')
 			.attr('xlink:href', '#rect');
-	
+
 	this.force.on("tick", function(x) {
 		self.vis.selectAll('g.node')
-				.attr('transform', function(d) { return 'translate('+(d.x-25)+','+(d.y-25)+')'; });	
+				.attr('transform', function(d) { return 'translate('+(d.x-g_node_radius)+','+(d.y-g_node_radius)+')'; });	
 		self.vis.selectAll('line.link')
 				.attr('x1', function(d) { return d.source.x; })
 				.attr('y1', function(d) { return d.source.y; })
@@ -124,33 +128,21 @@ WeiboGraph.prototype.update = function() {
 						.attr('class', 'node')
 						.call(this.force.drag);
 	
-
-	/*nodeEnter.append('svg:image')
-			.attr('class', 'circle')
-			.attr('xlink:href', function(d) { return 'http://tp2.sinaimg.cn/' + d.uid + '/50/0/1';})
-			.attr('x', '-25px')
-			.attr('y', '-25px')
-			.attr('width', '50px')
-			.attr('height', '50px')
-			.on('mouseover', function(d) {
-				// alert('uid:'+d.uid+', follows:'+d.follows+', fans:'+d.fans);
-			})
-			.on('dblclick',function(d){ 
-				changeGraphAjax(d.uid);
-			})*/
+	
 	nodeEnter.append('svg:image')
-			.attr('clip-path', 'url(#circle-img)')
+			.attr('clip-path', 'url(#circle_img)')
 			.attr('xlink:href', function(d) { return 'http://tp2.sinaimg.cn/' + d.uid + '/50/0/1';})
-			.attr('width', '50px')
-			.attr('height', '50px')
+			.attr('width', g_node_width+'px')
+			.attr('height', g_node_width+'px')
 			.on('mouseover', function(d) {
-				x = d.x+d3.mouse(this)[0]+160;
-				y = d.y+d3.mouse(this)[1]+120;
+				x = event.x+10;
+				y = event.y+15;
 				showToolTip(d, x, y, true);
 			})
 			.on('mousemove', function(d) {
-				x = d.x+d3.mouse(this)[0]+160;
-				y = d.y+d3.mouse(this)[1]+120;
+				x = event.x+10;
+				y = event.y+15;
+				if (y+150 > window.innerHeight) { y -= 200; }
 				tooltipDiv.css({top:y,left:x});
 			})
 			.on('mouseout', function(d) {
@@ -171,8 +163,6 @@ WeiboGraph.prototype.update = function() {
 	this.force.start();
 }
 
-/*-- Init global variable ---------------------------------------*/
-var weiboGraph = new WeiboGraph('graph');
 
 function changeGraphAjax(uid) {
 	$.ajax({
@@ -183,8 +173,28 @@ function changeGraphAjax(uid) {
 		success: function(data) {
 			json = eval("("+data+")");
 
-			weiboGraph.clearNodes();
-			weiboGraph.clearLinks();
+			if (json.nodes.length > 150) {
+				g_node_width = '20';
+				g_node_radius = '10';
+				g_link_width = 110;
+			} else if (json.nodes.length > 100) {
+				g_node_width = '30';
+				g_node_radius = '15';
+				g_link_width = 140;
+			}  else if (json.nodes.length > 50) {
+				g_node_width = '40';
+				g_node_radius = '20';
+				g_link_width = 170;
+			}  else {
+				g_node_width = '50';
+				g_node_radius = '25';
+				g_link_width = 200;
+			}
+			d3.select(document.getElementById("graph")).html('');
+			weiboGraph = new WeiboGraph('graph');
+
+			// weiboGraph.clearNodes();
+			// weiboGraph.clearLinks();
 			weiboGraph.addNodes(json.nodes);
 			weiboGraph.addLinks(json.links);
 			weiboGraph.update();
@@ -197,6 +207,8 @@ function changeGraphAjax(uid) {
 }
 
 function showToolTip(node, x, y, isShow) {
+	if (y+150 > window.innerHeight) { y -= 200; }
+
 	if (typeof(tooltipDiv) == "undefined") {
 		tooltipDiv = $('<div id="tooltipDiv"></div>');
 		$('body').append(tooltipDiv);
@@ -212,3 +224,6 @@ function showToolTip(node, x, y, isShow) {
 	tooltipDiv.css({top:x, left:y});
 	tooltipDiv.show();
 }
+
+/*-- Init global variable -----------------------------------------------------*/
+var weiboGraph = new WeiboGraph('graph');
