@@ -20,11 +20,11 @@ def search_user(keyword):
 def is_user_exist(uid):
 	try:
 		sql = 'select count(uid) from user where uid="'+uid+'"'
-		count = cursor.execute(sql).fetchone()
+		count = cursor.execute(sql).fetchone()[0]
 		if count > 0: return True
 	except Exception, e:
 		print '>>>[Error: is_user_exist]', uid, e
-		return False
+	return False
 
 def add_user(uid, nick, follows, fans):
 	try:
@@ -55,10 +55,19 @@ def update_user_db_follows(uid, db_follows):
 		print '>>>[Error: update_user_db_follows]', uid, db_follows, e
 
 
+def get_db_follows(uid):
+	try:
+		sql = 'select uid, nick, follows, fans from user where uid in (select target from relation where source="'+uid+'")'
+		return cursor.execute(sql).fetchall()
+	except Exception, e:
+		print '>>>[Error: get_db_follows]', uid, e
+		return None
+
+
 def count_db_follows(uid):
 	try:
 		sql = 'select count(target) from relation where source="'+uid+'"'
-		return cursor.execute(sql).fetchone()
+		return cursor.execute(sql).fetchone()[0]
 	except Exception, e:
 		print '>>>[Error: count_db_follows]', uid, e
 		return 0

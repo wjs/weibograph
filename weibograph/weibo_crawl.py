@@ -69,7 +69,6 @@ def get_self_weibo_relation(selfUid):
     match = re.compile(u'uid=\d+')
     rawlv2 = re.findall(match, text)
     uidList = {}.fromkeys(rawlv2).keys()
-    uidList.remove('uid='+selfUid)
 
     currentPageNum = 1
     while len(uidList) < int(follows):
@@ -86,11 +85,15 @@ def get_self_weibo_relation(selfUid):
             match = re.compile(u'uid=\d+')
             rawlv2 = re.findall(match, text)
             uidList += {}.fromkeys(rawlv2).keys()
-            uidList.remove('uid='+selfUid)
         else: break
 
     print 'len(uidList)=',len(uidList)
     uidList = get_real_uid_list(uidList)
+    uidList = list(set(uidList)) # remove duplicate element
+    if selfUid in uidList:
+        uidList.remove(selfUid)
+    print uidList
+
     if len(uidList) > 0:
         for uid in uidList:
             db.add_relation(selfUid, uid)
@@ -150,6 +153,7 @@ def get_weibo_relation(uid):
 
 def get_userinfo(uid):
     if not db.is_user_exist(uid):
+        print uid
         req = urllib2.Request(url='http://weibo.com/'+uid+'/follow',)
         result = urllib2.urlopen(req)
         try:
@@ -180,7 +184,7 @@ def get_userinfo(uid):
 
 
 def get_real_uid_list(uidList):
-    for i in range(0, len(uidList)-1):
+    for i in range(len(uidList)):
         uidList[i] = uidList[i][4:]
     return uidList
 
