@@ -144,9 +144,17 @@ WeiboGraph.prototype.update = function() {
 			.attr('width', '50px')
 			.attr('height', '50px')
 			.on('mouseover', function(d) {
-				this.css('width', '70px');
-				this.css('height', '70px');
-				// alert('uid:'+d.uid+', follows:'+d.follows+', fans:'+d.fans);
+				x = d.x+d3.mouse(this)[0]+160;
+				y = d.y+d3.mouse(this)[1]+120;
+				showToolTip(d, x, y, true);
+			})
+			.on('mousemove', function(d) {
+				x = d.x+d3.mouse(this)[0]+160;
+				y = d.y+d3.mouse(this)[1]+120;
+				tooltipDiv.css({top:y,left:x});
+			})
+			.on('mouseout', function(d) {
+				showToolTip(" ",0,0,false);
 			})
 			.on('dblclick',function(d){ 
 				changeGraphAjax(d.uid);
@@ -186,4 +194,21 @@ function changeGraphAjax(uid) {
 			alert('Ajax to get graph occur error.')
 		}
 	});
+}
+
+function showToolTip(node, x, y, isShow) {
+	if (typeof(tooltipDiv) == "undefined") {
+		tooltipDiv = $('<div id="tooltipDiv"></div>');
+		$('body').append(tooltipDiv);
+	}
+	if (!isShow) { tooltipDiv.hide(); return; }
+
+	htmlStr = '<div align="center"><img src="http://tp2.sinaimg.cn/' + node.uid + '/50/0/1"></div>'
+	htmlStr += 'uid: ' + node.uid + '<br>';
+	htmlStr += 'nick: ' + node.nick + '<br>';
+	htmlStr += 'follows: ' + node.follows + '<br>';
+	htmlStr += 'fans: ' + node.fans + '<br>';
+	tooltipDiv.html(htmlStr);
+	tooltipDiv.css({top:x, left:y});
+	tooltipDiv.show();
 }
